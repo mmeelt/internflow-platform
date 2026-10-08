@@ -147,7 +147,21 @@ npm run build               # frontend type-check and production build
 
 ## 📸 Screenshots
 
-_Coming soon._
+> Demo data only. All names shown are fictional.
+
+<p align="center">
+  <img src="docs/screenshots/login.png" alt="Login page" width="100%" />
+</p>
+
+| Student dashboard | Project & tasks |
+|---|---|
+| ![Student dashboard](docs/screenshots/student-dashboard.png) | ![Student tasks](docs/screenshots/student-tasks.png) |
+| **AI assistant** | **Calendar** |
+| ![AI assistant](docs/screenshots/ai-assistant.png) | ![Calendar](docs/screenshots/student-calendar.png) |
+| **Supervisor statistics** | **Admin dashboard** |
+| ![Supervisor statistics](docs/screenshots/supervisor-statistics.png) | ![Admin dashboard](docs/screenshots/admin-dashboard.png) |
+| **Admin project management** | |
+| ![Admin projects](docs/screenshots/admin-projects.png) | |
 
 ## 📚 Documentation
 
