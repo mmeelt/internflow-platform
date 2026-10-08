@@ -18,38 +18,38 @@
 
 ---
 
-## 🏢 Real-world project
+## Real-world project
 
 InternFlow was designed and built during my engineering internship (2026) for a **real company**: a technology and innovation hub that hosts interns across several centres of excellence (AI, Industry 4.0, …). The company's internship programme was managed with emails and spreadsheets. I built this platform to replace that process, and it was delivered to the company's IT team for production use.
 
 > The company's name, logos and real data have been removed from this public version. Everything else, including the architecture, features, security and deployment setup, is the delivered application.
 
-## ✨ Features
+## Features
 
-### 👩‍🎓 Students
+### Students
 - Registration with email OTP verification and supervisor/administrator approval
 - Personal dashboard with project, milestones, tasks and deadlines
 - Document submission (reports, signed internship agreements, source code, demo videos) with feedback threads
 - Calendar, notifications and direct messaging with supervisors
 - Project library: browse published projects and request access to reports or source code
 
-### 🧑‍🏫 Supervisors
+### Supervisors
 - Intern overview with progress tracking and analytics charts
 - Task assignment, document review and structured feedback
 - Co-supervision invitations and shared access to interns
 - **AI-assisted feedback drafts** and document review
 
-### 🛡️ Administrators
+### Administrators
 - User approval and account management for every role
 - Project creation, approval, publication and assignment, **including assignment to people who haven't registered yet** (linked automatically once they sign up)
 - Student records, ratings and organisation by centre of excellence
 
-### 🤖 AI & RAG
+### AI & RAG
 - Multi-provider AI layer (**Gemini, Groq, OpenAI**) with automatic fallback
 - **Retrieval-Augmented Generation** over project reports: Gemini embeddings stored in **Qdrant**, with answers scoped to the documents the user is permitted to read
 - All provider keys stay server-side; AI is disabled by default and enabled per deployment
 
-## 🔐 Security highlights
+## Security highlights
 
 | Area | Implementation |
 |---|---|
@@ -61,7 +61,7 @@ InternFlow was designed and built during my engineering internship (2026) for a 
 | Data | Flyway versioned migrations, **encrypted Restic backups** with retention policy |
 | Secrets | Everything comes from environment variables; nothing sensitive is committed |
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -86,7 +86,7 @@ flowchart LR
 | Infrastructure | Docker Compose, Caddy, ClamAV, Restic |
 | Testing | JUnit 5 with an isolated H2 test profile |
 
-## 📁 Project structure
+## Project structure
 
 ```text
 .
@@ -105,7 +105,7 @@ flowchart LR
 └── docker-compose.production.yml  # HTTPS production overlay (Caddy)
 ```
 
-## 🚀 Run it locally
+## Run it locally
 
 **Requirements:** Docker Desktop (or Docker Engine + Compose).
 
@@ -145,7 +145,7 @@ cd backend && ./mvnw test   # backend unit/integration tests (H2, no external se
 npm run build               # frontend type-check and production build
 ```
 
-## 📸 Screenshots
+## Screenshots
 
 > Demo data only. All names shown are fictional.
 
@@ -163,12 +163,12 @@ npm run build               # frontend type-check and production build
 | **Admin project management** | |
 | ![Admin projects](docs/screenshots/admin-projects.png) | |
 
-## 📚 Documentation
+## Documentation
 
 - [Deployment & operations guide](docs/DEPLOYMENT.md): production setup with HTTPS, first-admin bootstrap, backups, restore and resets
 - [Operations & recovery](docs/OPERATIONS.md)
 
-## 👩‍💻 Author
+## Author
 
 **Meriem Eltaief**, software engineering student
 
@@ -176,6 +176,6 @@ npm run build               # frontend type-check and production build
 
 I'm open to internship and junior developer opportunities, so feel free to reach out.
 
-## 📄 License
+## License
 
 [MIT](LICENSE)
