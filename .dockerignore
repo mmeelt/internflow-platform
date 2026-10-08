@@ -1,0 +1,11 @@
+.git
+.idea
+.next
+node_modules
+dist
+*.log
+.env
+.env.*
+!.env.example
+backend/target
+backend/uploads

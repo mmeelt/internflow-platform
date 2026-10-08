@@ -1,0 +1,137 @@
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:?Set DB_USERNAME in your local environment}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in your local environment}
+      - POSTGRES_DB=${DB_NAME:-myappdb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    # Keep mail credentials in .env. Unlike Compose variable interpolation,
+    # env_file cannot be silently overridden by an old PowerShell SMTP_PASSWORD
+    # environment variable when the backend is started.
+    env_file:
+      - .env
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME:-myappdb}
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in your local environment}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in your local environment}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your local environment}
+      JWT_ISSUER: ${JWT_ISSUER:-internflow-api}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-internflow-web}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      UPLOAD_DIR: /data/uploads
+      BOOTSTRAP_ADMIN_ENABLED: ${BOOTSTRAP_ADMIN_ENABLED:-false}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-}
+      MALWARE_SCAN_ENABLED: ${MALWARE_SCAN_ENABLED:-true}
+      MALWARE_SCAN_HOST: ${MALWARE_SCAN_HOST:-clamav}
+      MALWARE_SCAN_PORT: ${MALWARE_SCAN_PORT:-3310}
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - backend_uploads:/data/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8081}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Private vector database for the later RAG ingestion pipeline. It has no
+  # published host port: only the backend may reach it over Docker's network.
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  # Private scanner only. It has no published host port; the backend streams
+  # each upload to it before saving a database record.
+  clamav:
+    image: clamav/clamav:stable_base
+    restart: unless-stopped
+    environment:
+      CLAMD_CONF_StreamMaxLength: 104857600
+      CLAMD_CONF_MaxFileSize: 104857600
+      CLAMD_CONF_MaxScanSize: 104857600
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --ping 1 --config-file=/etc/clamav/clamd.conf | grep -q PONG"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+
+  # Local, automated disaster-recovery copies. This container has read-only
+  # access to uploads and only connects to PostgreSQL to run pg_dump.
+  # Export the backup_data volume to encrypted off-site storage before launch.
+  backup:
+    build:
+      context: ./backup
+    restart: unless-stopped
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-db
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in your local environment}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in your local environment}
+      DB_NAME: ${DB_NAME:-myappdb}
+      BACKUP_CRON: ${BACKUP_CRON:-15 2 * * *}
+      # Restic encrypts both the database dump and uploaded documents before
+      # they enter the backup volume. The job fails closed if this is empty.
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-/backups/restic}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
+      RESTIC_KEEP_DAILY: ${RESTIC_KEEP_DAILY:-7}
+      RESTIC_KEEP_WEEKLY: ${RESTIC_KEEP_WEEKLY:-4}
+      RESTIC_KEEP_MONTHLY: ${RESTIC_KEEP_MONTHLY:-12}
+    volumes:
+      - backend_uploads:/data/uploads:ro
+      - backup_data:/backups
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  qdrant_storage:
+  clamav_data:
+  backup_data:

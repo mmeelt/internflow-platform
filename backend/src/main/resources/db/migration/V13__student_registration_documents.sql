@@ -1,0 +1,4 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS identity_card_path VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS identity_card_name VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS internship_agreement_path VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS internship_agreement_name VARCHAR(255);

@@ -1,0 +1,29 @@
+# Dependencies & build output
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+backend/target/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Runtime data (uploaded files must never be committed)
+backend/uploads/
+uploads/
+*-data/
+
+# Logs
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+nbproject/
+*.iml
+.DS_Store
+Thumbs.db

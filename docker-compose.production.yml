@@ -1,0 +1,35 @@
+services:
+  postgres-db:
+    ports: !reset []
+
+  backend:
+    ports: !reset []
+    environment:
+      COOKIE_SECURE: "true"
+      CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN to your public domain}
+
+  frontend:
+    ports: !reset []
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: https://${APP_DOMAIN:?Set APP_DOMAIN to your public domain}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN to your public domain}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
